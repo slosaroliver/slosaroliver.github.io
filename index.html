@@ -151,7 +151,7 @@
 <!-- ENTRY SCREEN -->
 <div class="screen" id="screen-entry">
   <div class="entry-top">
-    <div class="amount-display" id="amount-display"><span class="cur">€</span>0<span class="cursor">|</span></div>
+    <div class="amount-display" id="amount-display"><span class="cur">€</span>0,00</div>
     <input class="desc-input" id="desc-input" type="text" placeholder="what was this for?" autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="cat-hint" id="cat-hint">category appears as you type</div>
   </div>
@@ -165,7 +165,7 @@
     <button class="key" data-key="7">7</button>
     <button class="key" data-key="8">8</button>
     <button class="key" data-key="9">9</button>
-    <button class="key" data-key=".">.</button>
+    <button class="key" data-key="00">00</button>
     <button class="key" data-key="0">0</button>
     <button class="key del" data-key="del">
       <svg viewBox="0 0 24 24"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="13" y2="14"/><line x1="13" y1="9" x2="18" y2="14"/></svg>
@@ -306,46 +306,40 @@ function saveData(d) { localStorage.setItem('spend_data', JSON.stringify(d)); }
 
 function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function todayStr() { return dateStr(new Date()); }
-function fmtAmt(n) { return '€' + n.toFixed(2); }
+function fmtAmt(n) { return '€' + n.toFixed(2).replace('.', ','); }
 
 const DAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 const MON = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 const MONTHS = ['january','february','march','april','may','june','july','august','september','october','november','december'];
 
-let amountRaw = '';
+let amountCents = 0;
 let currentScreen = 'entry';
+const MAX_CENTS = 99999999;
 
 function renderAmount() {
   const el = document.getElementById('amount-display');
-  const val = amountRaw === '' ? '0' : amountRaw;
-  el.innerHTML = '<span class="cur">€</span>' + val + '<span class="cursor">|</span>';
+  const euros = (amountCents/100).toFixed(2).replace('.', ',');
+  el.innerHTML = '<span class="cur">€</span>' + euros;
+  el.style.color = amountCents === 0 ? 'var(--text3)' : 'var(--text)';
 }
 
 function handleKey(k) {
-  if (k === 'del') { amountRaw = amountRaw.slice(0,-1); }
-  else if (k === '.') {
-    if (amountRaw.includes('.')) return;
-    if (amountRaw === '') amountRaw = '0';
-    amountRaw += '.';
-  } else {
-    const parts = amountRaw.split('.');
-    if (parts.length === 2 && parts[1].length >= 2) return;
-    if (amountRaw.length >= 6 && !amountRaw.includes('.')) return;
-    amountRaw += k;
-  }
+  if (k === 'del') { amountCents = Math.floor(amountCents/10); }
+  else if (k === '00') { amountCents = Math.min(amountCents*100, MAX_CENTS); }
+  else { amountCents = Math.min(amountCents*10 + parseInt(k,10), MAX_CENTS); }
   renderAmount();
 }
 
 function doSave() {
-  const amt = parseFloat(amountRaw);
-  if (!amt || amt <= 0) { shakeSave(); return; }
+  const amt = amountCents/100;
+  if (amt <= 0) { shakeSave(); return; }
   const desc = document.getElementById('desc-input').value.trim();
   if (!desc) { document.getElementById('desc-input').focus(); return; }
   const cat = categorize(desc);
   const data = loadData();
   data.push({ id: Date.now(), date: todayStr(), ts: Date.now(), amount: amt, desc, catId: cat.id });
   saveData(data);
-  amountRaw = '';
+  amountCents = 0;
   document.getElementById('desc-input').value = '';
   renderAmount();
   updateCatHint('');
