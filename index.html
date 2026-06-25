@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Spend">
+<title>Spend</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f5f5;
+    --bg3: #ebebeb;
+    --text: #111111;
+    --text2: #666666;
+    --text3: #999999;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.18);
+    --green: #1a9e6f;
+    --green-light: #e1f5ee;
+    --green-text: #0a6e4a;
+    --radius: 12px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111111;
+      --bg2: #1e1e1e;
+      --bg3: #2a2a2a;
+      --text: #f0f0f0;
+      --text2: #aaaaaa;
+      --text3: #666666;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.2);
+      --green-light: #0a3d28;
+      --green-text: #4ecf9a;
+    }
+  }
+  html, body { height: 100%; overflow: hidden; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; color: var(--text); }
+
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--bg); transition: transform 0.28s cubic-bezier(.4,0,.2,1), opacity 0.28s; }
+  .screen.hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
+  .screen.slide-left { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+
+  .topbar { padding: calc(var(--safe-top) + 14px) 16px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid var(--border); }
+  .topbar-title { font-size: 17px; font-weight: 600; color: var(--text); }
+  .topbar-btn { background: none; border: none; color: var(--green); font-size: 16px; padding: 4px; cursor: pointer; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+  .topbar-btn.icon { font-size: 22px; }
+
+  .tabbar { display: flex; border-top: 0.5px solid var(--border); padding-bottom: var(--safe-bottom); background: var(--bg); }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 0 6px; background: none; border: none; color: var(--text3); font-size: 10px; cursor: pointer; }
+  .tab svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .tab.active { color: var(--green); }
+
+  .scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ENTRY SCREEN */
+  #screen-entry { justify-content: flex-end; }
+  .entry-top { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 24px; padding-top: calc(var(--safe-top) + 20px); }
+  .amount-display { font-size: 52px; font-weight: 300; color: var(--text); letter-spacing: -1px; min-height: 64px; text-align: center; }
+  .amount-display .cursor { animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .desc-row { width: 100%; margin-top: 16px; }
+  .desc-input { width: 100%; background: var(--bg2); border: 0.5px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 17px; color: var(--text); outline: none; -webkit-appearance: none; }
+  .desc-input::placeholder { color: var(--text3); }
+  .cat-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--green-light); color: var(--green-text); font-size: 14px; font-weight: 500; padding: 5px 12px; border-radius: 99px; margin-top: 12px; min-height: 30px; }
+  .cat-pill.empty { background: var(--bg2); color: var(--text3); }
+
+  .numpad { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 0.5px solid var(--border); }
+  .key { background: var(--bg); border: none; border-right: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); padding: 0; height: 72px; font-size: 22px; font-weight: 400; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.1s; }
+  .key:nth-child(3n) { border-right: none; }
+  .key:active { background: var(--bg3); }
+  .key.save { background: var(--green); color: #fff; font-size: 17px; font-weight: 600; }
+  .key.save:active { background: var(--green-text); }
+  .key.del svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .numpad-bottom { padding-bottom: var(--safe-bottom); }
+
+  /* LOG SCREEN */
+  .day-nav { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 0.5px solid var(--border); }
+  .day-nav-btn { background: none; border: none; color: var(--green); font-size: 24px; cursor: pointer; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+  .day-nav-label { font-size: 15px; font-weight: 500; color: var(--text); text-align: center; }
+  .day-nav-sub { font-size: 12px; color: var(--text3); text-align: center; }
+  .day-total { padding: 10px 16px; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 0.5px solid var(--border); }
+  .day-total-label { font-size: 13px; color: var(--text3); }
+  .day-total-amt { font-size: 20px; font-weight: 600; color: var(--text); }
+  .entry-row { display: flex; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--border); gap: 12px; }
+  .entry-icon { width: 36px; height: 36px; border-radius: 99px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .entry-info { flex: 1; min-width: 0; }
+  .entry-desc { font-size: 15px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .entry-cat { font-size: 12px; color: var(--text3); margin-top: 1px; }
+  .entry-amt { font-size: 16px; font-weight: 500; color: var(--text); flex-shrink: 0; }
+  .entry-del { background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; padding: 4px; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; }
+  .empty-state { padding: 60px 24px; text-align: center; color: var(--text3); font-size: 15px; }
+
+  /* OVERVIEW SCREEN */
+  .period-tabs { display: flex; padding: 12px 16px; gap: 8px; border-bottom: 0.5px solid var(--border); }
+  .period-tab { flex: 1; padding: 7px; border-radius: 8px; border: 0.5px solid var(--border); background: none; font-size: 14px; color: var(--text2); cursor: pointer; text-align: center; }
+  .period-tab.active { background: var(--green); color: #fff; border-color: var(--green); font-weight: 500; }
+  .overview-content { padding: 16px; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .stat-card { background: var(--bg2); border-radius: 10px; padding: 12px 14px; }
+  .stat-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .stat-val { font-size: 22px; font-weight: 600; color: var(--text); }
+  .section-head { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  .cat-row { margin-bottom: 4px; }
+  .cat-row-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 0 6px; cursor: pointer; }
+  .cat-row-left { display: flex; align-items: center; gap: 10px; }
+  .cat-dot { width: 10px; height: 10px; border-radius: 99px; flex-shrink: 0; }
+  .cat-name { font-size: 15px; color: var(--text); }
+  .cat-row-right { display: flex; align-items: center; gap: 8px; }
+  .cat-amt { font-size: 15px; font-weight: 500; color: var(--text); }
+  .cat-chevron { font-size: 13px; color: var(--text3); transition: transform 0.2s; }
+  .cat-chevron.open { transform: rotate(90deg); }
+  .bar-track { width: 100%; height: 5px; background: var(--bg3); border-radius: 99px; overflow: hidden; margin-bottom: 4px; }
+  .bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+  .cat-entries { overflow: hidden; transition: max-height 0.25s ease; max-height: 0; }
+  .cat-entries.open { max-height: 2000px; }
+  .cat-entry { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0 7px 20px; border-top: 0.5px solid var(--border); }
+  .cat-entry-left { flex: 1; min-width: 0; }
+  .cat-entry-desc { font-size: 14px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cat-entry-date { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .cat-entry-amt { font-size: 14px; font-weight: 500; color: var(--text); flex-shrink: 0; margin-left: 8px; }
+  .export-btn { width: 100%; margin-top: 24px; padding: 14px; background: var(--bg2); border: 0.5px solid var(--border2); border-radius: 10px; font-size: 15px; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .export-btn:active { background: var(--bg3); }
+
+  .month-nav { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 0.5px solid var(--border); }
+  .month-nav-btn { background: none; border: none; color: var(--green); font-size: 24px; cursor: pointer; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+  .month-nav-label { font-size: 16px; font-weight: 600; color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- ENTRY SCREEN -->
+<div class="screen" id="screen-entry">
+  <div class="entry-top">
+    <div class="amount-display" id="amount-display">0<span class="cursor">|</span></div>
+    <div class="desc-row">
+      <input class="desc-input" id="desc-input" type="text" placeholder="what was this for?" autocomplete="off" autocorrect="off" spellcheck="false">
+      <div><span class="cat-pill empty" id="cat-pill">category will appear here</span></div>
+    </div>
+  </div>
+  <div class="numpad">
+    <button class="key" data-key="1">1</button>
+    <button class="key" data-key="2">2</button>
+    <button class="key" data-key="3">3</button>
+    <button class="key" data-key="4">4</button>
+    <button class="key" data-key="5">5</button>
+    <button class="key" data-key="6">6</button>
+    <button class="key" data-key="7">7</button>
+    <button class="key" data-key="8">8</button>
+    <button class="key" data-key="9">9</button>
+    <button class="key" data-key=".">.</button>
+    <button class="key" data-key="0">0</button>
+    <button class="key del" data-key="del">
+      <svg viewBox="0 0 24 24"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="13" y2="14"/><line x1="13" y1="9" x2="18" y2="14"/></svg>
+    </button>
+    <button class="key save" id="save-btn" style="grid-column: span 3;" data-key="save">save</button>
+  </div>
+  <div class="tabbar">
+    <button class="tab active" onclick="showScreen('entry')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      add
+    </button>
+    <button class="tab" onclick="showScreen('log')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+      log
+    </button>
+    <button class="tab" onclick="showScreen('overview')">
+      <svg viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+      overview
+    </button>
+  </div>
+</div>
+
+<!-- LOG SCREEN -->
+<div class="screen hidden" id="screen-log">
+  <div class="topbar">
+    <div class="topbar-title">log</div>
+    <button class="topbar-btn" id="log-today-btn" style="font-size:14px;font-weight:500;">today</button>
+  </div>
+  <div class="day-nav">
+    <button class="day-nav-btn" id="day-prev">&#8249;</button>
+    <div>
+      <div class="day-nav-label" id="day-label">today</div>
+      <div class="day-nav-sub" id="day-sub"></div>
+    </div>
+    <button class="day-nav-btn" id="day-next">&#8250;</button>
+  </div>
+  <div class="day-total">
+    <div class="day-total-label" id="day-entry-count">0 entries</div>
+    <div class="day-total-amt" id="day-total-amt">€0.00</div>
+  </div>
+  <div class="scroll" id="log-list"></div>
+  <div class="tabbar">
+    <button class="tab" onclick="showScreen('entry')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      add
+    </button>
+    <button class="tab active" onclick="showScreen('log')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+      log
+    </button>
+    <button class="tab" onclick="showScreen('overview')">
+      <svg viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+      overview
+    </button>
+  </div>
+</div>
+
+<!-- OVERVIEW SCREEN -->
+<div class="screen hidden" id="screen-overview">
+  <div class="topbar">
+    <div class="topbar-title">overview</div>
+  </div>
+  <div class="period-tabs">
+    <button class="period-tab active" data-period="week" onclick="setPeriod('week')">week</button>
+    <button class="period-tab" data-period="month" onclick="setPeriod('month')">month</button>
+    <button class="period-tab" data-period="year" onclick="setPeriod('year')">year</button>
+    <button class="period-tab" data-period="all" onclick="setPeriod('all')">all time</button>
+  </div>
+  <div class="month-nav" id="month-nav" style="display:none">
+    <button class="month-nav-btn" id="period-prev">&#8249;</button>
+    <div class="month-nav-label" id="period-label"></div>
+    <button class="month-nav-btn" id="period-next">&#8250;</button>
+  </div>
+  <div class="scroll">
+    <div class="overview-content" id="overview-content"></div>
+  </div>
+  <div class="tabbar">
+    <button class="tab" onclick="showScreen('entry')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      add
+    </button>
+    <button class="tab" onclick="showScreen('log')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+      log
+    </button>
+    <button class="tab active" onclick="showScreen('overview')">
+      <svg viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+      overview
+    </button>
+  </div>
+</div>
+
+<script>
+const CATS = [
+  { id: 'drinks',      label: 'drinks',       emoji: '☕', color: '#854F0B', bg: '#FAEEDA',
+    keys: ['coffee','café','cafe','latte','cappuccino','espresso','flat white','macchiato','tea','beer','beers','bar','pub','wine','cocktail','prosecco','shots','shot','gin','vodka','whiskey','rum','pint','pints','drinks','drink','juice','smoothie','kombucha'] },
+  { id: 'eating-out',  label: 'eating out',   emoji: '🍽️', color: '#3B6D11', bg: '#EAF3DE',
+    keys: ['lunch','dinner','brunch','breakfast','restaurant','takeaway','take away','takeout','burger','pizza','sushi','ramen','pasta','kebab','gyros','mcdonald','kfc','subway','chipotle','nandos','wagamama','bistro','diner','ate out','eating out','food out','thai','indian','chinese','mexican','italian'] },
+  { id: 'groceries',   label: 'groceries',    emoji: '🛒', color: '#0F6E56', bg: '#E1F5EE',
+    keys: ['grocery','groceries','supermarket','lidl','aldi','tesco','kaufland','billa','spar','rewe','albert','albert heijn','waitrose','sainsbury','market','produce','food shop','food shopping','veggies','vegetables','fruit','meat','bread','milk','cheese','eggs','butter'] },
+  { id: 'shopping',    label: 'shopping',     emoji: '🛍️', color: '#185FA5', bg: '#E6F1FB',
+    keys: ['shop','shopping','clothes','clothing','zara','h&m','hm','primark','amazon','asos','shoes','shirt','pants','jacket','dress','socks','underwear','ikea','decathlon','adidas','nike','mango','pull&bear','stradivarius','leroy','obi'] },
+  { id: 'transport',   label: 'transport',    emoji: '🚌', color: '#533AB7', bg: '#EEEDFE',
+    keys: ['uber','taxi','cab','bus','train','metro','tram','tube','subway','transport','fuel','petrol','gas','parking','flight','plane','airport','bolt','lyft','rental','rent a car','ferry','ticket transport'] },
+  { id: 'entertainment', label: 'entertainment', emoji: '🎬', color: '#993556', bg: '#FBEAF0',
+    keys: ['cinema','movie','film','concert','ticket','netflix','spotify','apple music','game','games','theatre','theater','museum','show','festival','gig','event','exhibition','bowling','minigolf','laser','escape room','bowling'] },
+  { id: 'health',      label: 'health',       emoji: '💊', color: '#A32D2D', bg: '#FCEBEB',
+    keys: ['pharmacy','doctor','medicine','gym','dentist','hospital','drug','drugs','vitamin','vitamins','physio','therapy','massage','optician','glasses','contact lenses','health','workout'] },
+  { id: 'other',       label: 'other',        emoji: '📦', color: '#5F5E5A', bg: '#F1EFE8',
+    keys: [] }
+];
+
+function categorize(desc) {
+  const d = desc.toLowerCase();
+  for (const cat of CATS) {
+    if (cat.id === 'other') continue;
+    for (const k of cat.keys) {
+      if (d.includes(k)) return cat;
+    }
+  }
+  return CATS.find(c => c.id === 'other');
+}
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem('spend_data') || '[]'); } catch(e) { return []; }
+}
+function saveData(d) { localStorage.setItem('spend_data', JSON.stringify(d)); }
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function dateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function fmtDate(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  const dt = new Date(y,m-1,d);
+  const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  return { day: days[dt.getDay()], date: `${d} ${months[m-1]} ${y}` };
+}
+function fmtAmt(n) { return '€' + n.toFixed(2); }
+
+// ENTRY
+let amountRaw = '';
+let currentScreen = 'entry';
+
+function renderAmount() {
+  const el = document.getElementById('amount-display');
+  const val = amountRaw === '' ? '0' : amountRaw;
+  el.innerHTML = val + '<span class="cursor">|</span>';
+}
+
+function handleKey(k) {
+  if (k === 'del') {
+    amountRaw = amountRaw.slice(0,-1);
+  } else if (k === 'save') {
+    doSave();
+    return;
+  } else if (k === '.') {
+    if (amountRaw.includes('.')) return;
+    if (amountRaw === '') amountRaw = '0';
+    amountRaw += '.';
+  } else {
+    const parts = amountRaw.split('.');
+    if (parts.length === 2 && parts[1].length >= 2) return;
+    if (amountRaw.length >= 6 && !amountRaw.includes('.')) return;
+    amountRaw += k;
+  }
+  renderAmount();
+}
+
+function doSave() {
+  const amt = parseFloat(amountRaw);
+  if (!amt || amt <= 0) { shakeSave(); return; }
+  const desc = document.getElementById('desc-input').value.trim();
+  if (!desc) { document.getElementById('desc-input').focus(); return; }
+  const cat = categorize(desc);
+  const entry = { id: Date.now(), date: todayStr(), ts: Date.now(), amount: amt, desc, catId: cat.id };
+  const data = loadData();
+  data.push(entry);
+  saveData(data);
+  amountRaw = '';
+  document.getElementById('desc-input').value = '';
+  renderAmount();
+  updateCatPill('');
+  flashSave();
+}
+
+function shakeSave() {
+  const btn = document.getElementById('save-btn');
+  btn.style.background = '#c0392b';
+  setTimeout(() => btn.style.background = '', 300);
+}
+function flashSave() {
+  const btn = document.getElementById('save-btn');
+  btn.textContent = 'saved ✓';
+  btn.style.background = '#0a6e4a';
+  setTimeout(() => { btn.textContent = 'save'; btn.style.background = ''; }, 800);
+}
+
+function updateCatPill(desc) {
+  const pill = document.getElementById('cat-pill');
+  if (!desc.trim()) {
+    pill.textContent = 'category will appear here';
+    pill.className = 'cat-pill empty';
+    return;
+  }
+  const cat = categorize(desc);
+  pill.textContent = cat.emoji + ' ' + cat.label;
+  pill.className = 'cat-pill';
+}
+
+document.getElementById('desc-input').addEventListener('input', e => updateCatPill(e.target.value));
+document.querySelectorAll('.key').forEach(k => k.addEventListener('click', () => handleKey(k.dataset.key)));
+renderAmount();
+
+// LOG
+let logOffset = 0;
+
+function showLog() {
+  const offset = logOffset;
+  const target = new Date();
+  target.setDate(target.getDate() + offset);
+  const ds = dateStr(target);
+  const fmt = fmtDate(ds);
+  const today = todayStr();
+
+  let label, sub;
+  if (ds === today) { label = 'today'; sub = fmt.date; }
+  else if (offset === -1) { label = 'yesterday'; sub = fmt.date; }
+  else { label = fmt.day; sub = fmt.date; }
+
+  document.getElementById('day-label').textContent = label;
+  document.getElementById('day-sub').textContent = sub;
+
+  const data = loadData().filter(e => e.date === ds);
+  const total = data.reduce((s,e) => s+e.amount, 0);
+  document.getElementById('day-entry-count').textContent = data.length + (data.length === 1 ? ' entry' : ' entries');
+  document.getElementById('day-total-amt').textContent = fmtAmt(total);
+
+  const list = document.getElementById('log-list');
+  if (data.length === 0) {
+    list.innerHTML = '<div class="empty-state">nothing logged for this day</div>';
+    return;
+  }
+  const sorted = [...data].sort((a,b) => b.ts - a.ts);
+  list.innerHTML = sorted.map(e => {
+    const cat = CATS.find(c => c.id === e.catId) || CATS[CATS.length-1];
+    return `<div class="entry-row">
+      <div class="entry-icon" style="background:${cat.bg}">${cat.emoji}</div>
+      <div class="entry-info">
+        <div class="entry-desc">${e.desc}</div>
+        <div class="entry-cat">${cat.label}</div>
+      </div>
+      <div class="entry-amt">${fmtAmt(e.amount)}</div>
+      <button class="entry-del" onclick="deleteEntry(${e.id})" aria-label="delete">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteEntry(id) {
+  const data = loadData().filter(e => e.id !== id);
+  saveData(data);
+  showLog();
+  if (currentScreen === 'overview') renderOverview();
+}
+
+document.getElementById('day-prev').addEventListener('click', () => { logOffset--; showLog(); });
+document.getElementById('day-next').addEventListener('click', () => { if (logOffset < 0) { logOffset++; showLog(); } });
+document.getElementById('log-today-btn').addEventListener('click', () => { logOffset = 0; showLog(); });
+
+// OVERVIEW
+let overviewPeriod = 'week';
+let periodOffset = 0;
+
+function setPeriod(p) {
+  overviewPeriod = p;
+  periodOffset = 0;
+  document.querySelectorAll('.period-tab').forEach(t => t.classList.toggle('active', t.dataset.period === p));
+  const nav = document.getElementById('month-nav');
+  nav.style.display = (p === 'month' || p === 'week') ? 'flex' : 'none';
+  renderOverview();
+}
+
+function getPeriodRange() {
+  const now = new Date();
+  let start, end, label;
+  if (overviewPeriod === 'week') {
+    const base = new Date(now);
+    base.setDate(base.getDate() + periodOffset * 7);
+    const day = base.getDay();
+    const mon = new Date(base); mon.setDate(base.getDate() - ((day+6)%7));
+    const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+    start = dateStr(mon); end = dateStr(sun);
+    const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    label = `${mon.getDate()} ${months[mon.getMonth()]} – ${sun.getDate()} ${months[sun.getMonth()]}`;
+  } else if (overviewPeriod === 'month') {
+    const base = new Date(now.getFullYear(), now.getMonth() + periodOffset, 1);
+    start = dateStr(base);
+    const last = new Date(base.getFullYear(), base.getMonth()+1, 0);
+    end = dateStr(last);
+    const months = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+    label = `${months[base.getMonth()]} ${base.getFullYear()}`;
+  } else if (overviewPeriod === 'year') {
+    const y = now.getFullYear() + periodOffset;
+    start = `${y}-01-01`; end = `${y}-12-31`; label = String(y);
+  } else {
+    start = '2000-01-01'; end = '2099-12-31'; label = 'all time';
+  }
+  return { start, end, label };
+}
+
+function renderOverview() {
+  const { start, end, label } = getPeriodRange();
+  document.getElementById('period-label').textContent = label;
+
+  const data = loadData().filter(e => e.date >= start && e.date <= end);
+  const total = data.reduce((s,e) => s+e.amount, 0);
+  const days = [...new Set(data.map(e=>e.date))].length;
+  const avg = days > 0 ? total/days : 0;
+  const byDay = {};
+  data.forEach(e => { byDay[e.date] = (byDay[e.date]||0)+e.amount; });
+  const maxDay = Object.values(byDay).reduce((m,v)=>Math.max(m,v),0);
+
+  const byCat = {};
+  CATS.forEach(c => byCat[c.id] = []);
+  data.forEach(e => { if (byCat[e.catId]) byCat[e.catId].push(e); else byCat['other'].push(e); });
+
+  const catTotals = CATS.map(c => ({ cat: c, entries: byCat[c.id], total: byCat[c.id].reduce((s,e)=>s+e.amount,0) }))
+    .filter(x => x.total > 0)
+    .sort((a,b) => b.total - a.total);
+
+  const el = document.getElementById('overview-content');
+  el.innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">total spent</div><div class="stat-val">${fmtAmt(total)}</div></div>
+      <div class="stat-card"><div class="stat-label">entries</div><div class="stat-val">${data.length}</div></div>
+      <div class="stat-card"><div class="stat-label">avg / day</div><div class="stat-val">${fmtAmt(avg)}</div></div>
+      <div class="stat-card"><div class="stat-label">biggest day</div><div class="stat-val">${fmtAmt(maxDay)}</div></div>
+    </div>
+    <div class="section-head">by category</div>
+    ${catTotals.length === 0 ? '<div style="color:var(--text3);font-size:14px;padding:20px 0;">no entries for this period</div>' : catTotals.map(x => {
+      const pct = total > 0 ? (x.total/total*100) : 0;
+      const sorted = [...x.entries].sort((a,b) => b.ts - a.ts);
+      const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+      return `<div class="cat-row" id="catrow-${x.cat.id}">
+        <div class="cat-row-header" onclick="toggleCat('${x.cat.id}')">
+          <div class="cat-row-left">
+            <div class="cat-dot" style="background:${x.cat.color}"></div>
+            <div class="cat-name">${x.cat.emoji} ${x.cat.label}</div>
+          </div>
+          <div class="cat-row-right">
+            <div class="cat-amt">${fmtAmt(x.total)}</div>
+            <div class="cat-chevron" id="chev-${x.cat.id}">›</div>
+          </div>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct.toFixed(1)}%;background:${x.cat.color}"></div></div>
+        <div class="cat-entries" id="catentries-${x.cat.id}">
+          ${sorted.map(e => {
+            const [y,m,d] = e.date.split('-').map(Number);
+            return `<div class="cat-entry">
+              <div class="cat-entry-left">
+                <div class="cat-entry-desc">${e.desc}</div>
+                <div class="cat-entry-date">${d} ${months[m-1]} ${y}</div>
+              </div>
+              <div class="cat-entry-amt">${fmtAmt(e.amount)}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('')}
+    <button class="export-btn" onclick="exportCSV()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      export as CSV
+    </button>
+  `;
+}
+
+function toggleCat(id) {
+  const entries = document.getElementById(`catentries-${id}`);
+  const chev = document.getElementById(`chev-${id}`);
+  const open = entries.classList.toggle('open');
+  chev.classList.toggle('open', open);
+}
+
+document.getElementById('period-prev').addEventListener('click', () => { periodOffset--; renderOverview(); });
+document.getElementById('period-next').addEventListener('click', () => { periodOffset++; renderOverview(); });
+
+// EXPORT
+function exportCSV() {
+  const data = loadData().sort((a,b) => a.ts - b.ts);
+  if (data.length === 0) { alert('no entries to export'); return; }
+  const rows = [['date','description','category','amount']];
+  data.forEach(e => {
+    const cat = CATS.find(c => c.id === e.catId) || CATS[CATS.length-1];
+    rows.push([e.date, `"${e.desc.replace(/"/g,'""')}"`, cat.label, e.amount.toFixed(2)]);
+  });
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `spend_${todayStr()}.csv`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// SCREEN NAV
+function showScreen(name) {
+  const prev = currentScreen;
+  if (prev === name) return;
+  const prevEl = document.getElementById(`screen-${prev}`);
+  const nextEl = document.getElementById(`screen-${name}`);
+  prevEl.classList.add('slide-left');
+  nextEl.classList.remove('hidden','slide-left');
+  setTimeout(() => prevEl.classList.add('hidden'), 280);
+  currentScreen = name;
+  if (name === 'log') showLog();
+  if (name === 'overview') { setPeriod(overviewPeriod); }
+}
+
+// Keyboard support for desc input
+document.getElementById('desc-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSave();
+});
+</script>
+</body>
+</html>
