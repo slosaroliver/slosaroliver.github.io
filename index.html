@@ -265,44 +265,81 @@ const ICONS = {
   drinks: '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h15v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="5"/><line x1="10" y1="2" x2="10" y2="5"/><line x1="14" y1="2" x2="14" y2="5"/>',
   eatingOut: '<path d="M6 2v7a2 2 0 0 0 4 0V2"/><line x1="8" y1="9" x2="8" y2="22"/><path d="M17 2c-1.7 0-3 2-3 5s1.3 4 3 4"/><line x1="17" y1="2" x2="17" y2="22"/>',
   groceries: '<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.2 11a1.6 1.6 0 0 0 1.6 1.3h8.4a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/>',
+  snacks: '<path d="M12 21 7 10h10z"/><path d="M7 10a5 5 0 0 1 10 0"/>',
+  nicotine: '<path d="M11 20A7 7 0 0 1 4 13c0-6 7-9 16-9 0 9-3 16-9 16z"/><line x1="7" y1="17" x2="14" y2="10"/>',
   shopping: '<path d="M6 2 3.5 6v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V6L18 2z"/><line x1="3.5" y1="6" x2="20.5" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>',
   transport: '<rect x="4" y="3" width="16" height="13" rx="2.5"/><line x1="4" y1="11" x2="20" y2="11"/><line x1="8" y1="3" x2="8" y2="11"/><line x1="16" y1="3" x2="16" y2="11"/><circle cx="8" cy="19" r="1.4"/><circle cx="16" cy="19" r="1.4"/>',
   entertainment: '<rect x="2.5" y="3" width="19" height="18" rx="2.5"/><line x1="7.5" y1="3" x2="7.5" y2="21"/><line x1="16.5" y1="3" x2="16.5" y2="21"/><line x1="2.5" y1="12" x2="21.5" y2="12"/><line x1="2.5" y1="7.5" x2="7.5" y2="7.5"/><line x1="2.5" y1="16.5" x2="7.5" y2="16.5"/><line x1="16.5" y1="7.5" x2="21.5" y2="7.5"/><line x1="16.5" y1="16.5" x2="21.5" y2="16.5"/>',
+  subscriptions: '<path d="M4 12a8 8 0 0 1 13.7-5.7L21 9"/><polyline points="21 4 21 9 16 9"/><path d="M20 12a8 8 0 0 1-13.7 5.7L3 15"/><polyline points="3 20 3 15 8 15"/>',
   health: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>',
+  personalCare: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.1" y2="15.9"/><line x1="14.5" y1="14.5" x2="20" y2="20"/><line x1="8.1" y1="8.1" x2="12" y2="12"/>',
+  rent: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><rect x="10" y="14" width="4" height="7"/>',
+  savings: '<polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/>',
+  fond: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.75"/>',
   other: '<path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.3 7 12 12 20.7 7"/><line x1="12" y1="22" x2="12" y2="12"/>'
 };
 function svg(inner) { return `<svg viewBox="0 0 24 24">${inner}</svg>`; }
 
 const CATS = [
-  { id: 'drinks',      label: 'drinks',       icon: ICONS.drinks,
-    keys: ['coffee','café','cafe','latte','cappuccino','espresso','flat white','macchiato','tea','beer','beers','bar','pub','wine','cocktail','prosecco','shots','shot','gin','vodka','whiskey','rum','pint','pints','drinks','drink','juice','smoothie','kombucha'] },
-  { id: 'eating-out',  label: 'eating out',   icon: ICONS.eatingOut,
-    keys: ['lunch','dinner','brunch','breakfast','restaurant','takeaway','take away','takeout','burger','pizza','sushi','ramen','pasta','kebab','gyros','mcdonald','kfc','subway','chipotle','nandos','wagamama','bistro','diner','ate out','eating out','food out','thai','indian','chinese','mexican','italian'] },
   { id: 'groceries',   label: 'groceries',    icon: ICONS.groceries,
-    keys: ['grocery','groceries','supermarket','lidl','aldi','tesco','kaufland','billa','spar','rewe','albert','albert heijn','waitrose','sainsbury','market','produce','food shop','food shopping','veggies','vegetables','fruit','meat','bread','milk','cheese','eggs','butter'] },
-  { id: 'shopping',    label: 'shopping',     icon: ICONS.shopping,
-    keys: ['shop','shopping','clothes','clothing','zara','h&m','hm','primark','amazon','asos','shoes','shirt','pants','jacket','dress','socks','underwear','ikea','decathlon','adidas','nike','mango','pull&bear','stradivarius','leroy','obi'] },
+    keys: ['grocery','groceries','supermarket','lidl','aldi','tesco','kaufland','billa','spar','rewe','coop','jednota','potraviny','market','produce','food shop','food shopping','veggies','vegetables','fruit','meat','bread','milk','cheese','eggs','butter','ciabatta','pecivo','rohlik'] },
+  { id: 'eating-out',  label: 'eating out',   icon: ICONS.eatingOut,
+    keys: ['lunch','dinner','brunch','breakfast','restaurant','takeaway','take away','takeout','burger','pizza','sushi','ramen','pasta','kebab','gyros','mcdonald','kfc','subway','chipotle','nandos','wagamama','bistro','diner','ate out','eating out','food out','thai','indian','chinese','mexican','italian','obed','vecera','ranajky','jedlo','jedlo vonku','obed vonku','bufet','bold food'] },
+  { id: 'drinks',      label: 'drinks',       icon: ICONS.drinks,
+    keys: ['coffee','cafe','latte','cappuccino','espresso','flat white','macchiato','tea','beer','beers','bar','pub','wine','cocktail','prosecco','shots','shot','gin','vodka','whiskey','rum','pint','pints','drinks','drink','juice','smoothie','kombucha','mineralka','monster','hell','hellko','pivo','piva','radler','kofola','birell','malinovka','kapucino','vinko','aperol','spritz','mojito'] },
+  { id: 'snacks',      label: 'snacks & treats', icon: ICONS.snacks,
+    keys: ['snack','snacks','nanuk','zmrzlina','zmrzka','cukriky','cukrik','sladkosti','keksy','cokolada','chips','chipsy','candy','sweets','ice cream','popsicle','dezert','kolac','muffin','donut','oplatka'] },
+  { id: 'nicotine',    label: 'nicotine',     icon: ICONS.nicotine,
+    keys: ['zuvak','zuwak','snus','velo','zyn','nikotin','nicotine','vrecka','pouches','pouch'] },
   { id: 'transport',   label: 'transport',    icon: ICONS.transport,
-    keys: ['uber','taxi','cab','bus','train','metro','tram','tube','transport','fuel','petrol','gas','parking','flight','plane','airport','bolt','lyft','rental','rent a car','ferry'] },
+    keys: ['uber','taxi','cab','bus','train','metro','tram','tube','transport','fuel','petrol','gas','parking','flight','plane','airport','bolt','lyft','rental','rent a car','ferry','mhd','vlak','vlaky','doprava','listok','cestovne','elektricka','autobus','benzin','nafta','parkovanie','letenka'] },
+  { id: 'shopping',    label: 'shopping',     icon: ICONS.shopping,
+    keys: ['shop','shopping','clothes','clothing','zara','h&m','hm','primark','amazon','asos','shoes','shirt','pants','jacket','dress','socks','underwear','ikea','decathlon','adidas','nike','mango','pull&bear','stradivarius','leroy','obi','alza','temu','tricko','nakup','oblecenie','topanky','rozlucka','aliexpress','ebay'] },
   { id: 'entertainment', label: 'entertainment', icon: ICONS.entertainment,
-    keys: ['cinema','movie','film','concert','ticket','netflix','spotify','apple music','game','games','theatre','theater','museum','show','festival','gig','event','exhibition','bowling','minigolf','laser','escape room'] },
+    keys: ['cinema','movie','film','concert','ticket','game','games','theatre','theater','museum','show','festival','gig','event','exhibition','bowling','minigolf','laser','escape room','divadlo','kino','koncert','hra','vstupenka','muzeum','playstation','ps game','steam','xbox'] },
+  { id: 'subscriptions', label: 'subscriptions', icon: ICONS.subscriptions,
+    keys: ['subscription','predplatne','icloud','claude','chatgpt','openai','wolt','dennik','dennikn','denikn','spotify','netflix','hbo','disney','youtube','apple music','apple tv','google one','dropbox','notion','microsoft','patreon'] },
   { id: 'health',      label: 'health',       icon: ICONS.health,
-    keys: ['pharmacy','doctor','medicine','gym','dentist','hospital','drug','drugs','vitamin','vitamins','physio','therapy','massage','optician','glasses','contact lenses','health','workout'] },
+    keys: ['pharmacy','doctor','medicine','gym','dentist','hospital','drug','drugs','vitamin','vitamins','physio','therapy','massage','optician','glasses','contact lenses','health','workout','gymbeam','lekaren','lekar','zubar','nemocnica','vitaminy','protein','kreatin','fitko'] },
+  { id: 'personal-care', label: 'personal care', icon: ICONS.personalCare,
+    keys: ['barber','barberka','holic','holicstvo','kadernik','kadernictvo','dm','drogeria','drugstore','cistiaren','cleaners','dry clean','kozmetika','cosmetics','manikura','pedikura','salon','sampon','refresh'] },
+  { id: 'rent',        label: 'rent & bills', icon: ICONS.rent,
+    keys: ['rent','najom','najomne','bills','bill','energie','elektrina','plyn','voda','internet','faktura','sipo','poistenie','insurance','mobil','telefon','o2','telekom','orange'] },
+  { id: 'savings',     label: 'savings',      icon: ICONS.savings,
+    keys: ['savings','sporenie','finax','dds','investicia','investment','etf','akcie','stocks','crypto','dochodok','sporiaci'] },
+  { id: 'spolocny-fond', label: 'spoločný fond', icon: ICONS.fond, separate: true,
+    keys: ['joint account','joint','spolocny fond','spolocny','shared fund'] },
   { id: 'other',       label: 'other',        icon: ICONS.other, keys: [] }
 ];
 
+function normalize(s) { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 function categorize(desc) {
-  const d = desc.toLowerCase();
+  const d = normalize(desc);
+  let best = null, bestLen = 0;
   for (const cat of CATS) {
-    if (cat.id === 'other') continue;
-    for (const k of cat.keys) if (d.includes(k)) return cat;
+    for (const k of cat.keys) {
+      if (k.length > bestLen && d.includes(k)) { best = cat; bestLen = k.length; }
+    }
   }
-  return CATS[CATS.length-1];
+  return best || catById('other');
 }
 function catById(id) { return CATS.find(c => c.id === id) || CATS[CATS.length-1]; }
 
 function loadData() { try { return JSON.parse(localStorage.getItem('spend_data') || '[]'); } catch(e) { return []; } }
-function saveData(d) { localStorage.setItem('spend_data', JSON.stringify(d)); }
+function saveData(d) { try { localStorage.setItem('spend_data', JSON.stringify(d)); } catch(e) {} }
+
+// One-time re-categorization when the ruleset changes. Bump RECAT_VERSION to re-run.
+const RECAT_VERSION = '2026-09-11-a';
+function recategorizeAll() {
+  try {
+    if (localStorage.getItem('spend_recat') === RECAT_VERSION) return;
+    const data = loadData();
+    data.forEach(e => { e.catId = categorize(e.desc).id; });
+    saveData(data);
+    localStorage.setItem('spend_recat', RECAT_VERSION);
+  } catch(e) {}
+}
+recategorizeAll();
 
 function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function todayStr() { return dateStr(new Date()); }
@@ -451,7 +488,10 @@ function getPeriodRange() {
 function renderOverview() {
   const { start, end, label } = getPeriodRange();
   document.getElementById('period-label').textContent = label;
-  const data = loadData().filter(e => e.date >= start && e.date <= end);
+  const all = loadData().filter(e => e.date >= start && e.date <= end);
+  const sepIds = new Set(CATS.filter(c => c.separate).map(c => c.id));
+  const data = all.filter(e => !sepIds.has(e.catId));
+
   const total = data.reduce((s,e) => s+e.amount, 0);
   const dayCount = [...new Set(data.map(e=>e.date))].length;
   const avg = dayCount > 0 ? total/dayCount : 0;
@@ -459,10 +499,28 @@ function renderOverview() {
   const maxDay = Object.values(byDay).reduce((m,v)=>Math.max(m,v),0);
 
   const byCat = {}; CATS.forEach(c => byCat[c.id] = []);
-  data.forEach(e => (byCat[e.catId] || byCat['other']).push(e));
-  const catTotals = CATS.map(c => ({ cat: c, entries: byCat[c.id], total: byCat[c.id].reduce((s,e)=>s+e.amount,0) }))
+  all.forEach(e => (byCat[e.catId] || byCat['other']).push(e));
+  const mk = cats => cats.map(c => ({ cat: c, entries: byCat[c.id], total: byCat[c.id].reduce((s,e)=>s+e.amount,0) }))
     .filter(x => x.total > 0).sort((a,b) => b.total - a.total);
-  const maxCat = catTotals.length ? catTotals[0].total : 0;
+  const mainCats = mk(CATS.filter(c => !c.separate));
+  const sepCats = mk(CATS.filter(c => c.separate));
+  const maxCat = mainCats.length ? mainCats[0].total : 0;
+
+  const rowHtml = (x, showBar) => {
+    const pct = maxCat > 0 ? (x.total/maxCat*100) : 0;
+    const entries = [...x.entries].sort((a,b) => b.ts - a.ts).map(e => {
+      const [y,m,d] = e.date.split('-').map(Number);
+      return `<div class="cat-entry"><div class="cat-entry-left"><div class="cat-entry-desc">${esc(e.desc)}</div><div class="cat-entry-date">${d} ${MON[m-1]} ${y}</div></div><div class="cat-entry-amt">${fmtAmt(e.amount)}</div></div>`;
+    }).join('');
+    return `<div class="cat-row">
+      <div class="cat-row-header" onclick="toggleCat('${x.cat.id}')">
+        <div class="cat-ico">${svg(x.cat.icon)}</div>
+        <div class="cat-mid"><div class="cat-name">${x.cat.label}</div>${showBar ? `<div class="bar-track"><div class="bar-fill" style="width:${pct.toFixed(1)}%"></div></div>` : ''}</div>
+        <div class="cat-right"><div class="cat-amt">${fmtAmt(x.total)}</div><div class="cat-chevron" id="chev-${x.cat.id}"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></div></div>
+      </div>
+      <div class="cat-entries" id="catentries-${x.cat.id}">${entries}</div>
+    </div>`;
+  };
 
   document.getElementById('overview-content').innerHTML = `
     <div class="hero-stat">
@@ -474,22 +532,9 @@ function renderOverview() {
       <div class="stat-cell"><div class="stat-cell-val">${fmtAmt(avg)}</div><div class="stat-cell-label">per day</div></div>
       <div class="stat-cell"><div class="stat-cell-val">${fmtAmt(maxDay)}</div><div class="stat-cell-label">biggest day</div></div>
     </div>
-    ${catTotals.length === 0 ? '<div class="empty-state" style="padding:40px 0">no entries for this period</div>' :
-      `<div class="section-head">by category</div>` + catTotals.map(x => {
-        const pct = maxCat > 0 ? (x.total/maxCat*100) : 0;
-        const entries = [...x.entries].sort((a,b) => b.ts - a.ts).map(e => {
-          const [y,m,d] = e.date.split('-').map(Number);
-          return `<div class="cat-entry"><div class="cat-entry-left"><div class="cat-entry-desc">${esc(e.desc)}</div><div class="cat-entry-date">${d} ${MON[m-1]} ${y}</div></div><div class="cat-entry-amt">${fmtAmt(e.amount)}</div></div>`;
-        }).join('');
-        return `<div class="cat-row">
-          <div class="cat-row-header" onclick="toggleCat('${x.cat.id}')">
-            <div class="cat-ico">${svg(x.cat.icon)}</div>
-            <div class="cat-mid"><div class="cat-name">${x.cat.label}</div><div class="bar-track"><div class="bar-fill" style="width:${pct.toFixed(1)}%"></div></div></div>
-            <div class="cat-right"><div class="cat-amt">${fmtAmt(x.total)}</div><div class="cat-chevron" id="chev-${x.cat.id}"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></div></div>
-          </div>
-          <div class="cat-entries" id="catentries-${x.cat.id}">${entries}</div>
-        </div>`;
-      }).join('')}
+    ${mainCats.length === 0 ? '<div class="empty-state" style="padding:40px 0">no entries for this period</div>' :
+      `<div class="section-head">by category</div>` + mainCats.map(x => rowHtml(x, true)).join('')}
+    ${sepCats.length ? `<div class="section-head" style="margin-top:26px">separate · not in total</div>` + sepCats.map(x => rowHtml(x, false)).join('') : ''}
     <button class="export-btn" onclick="exportCSV()">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       export as CSV
