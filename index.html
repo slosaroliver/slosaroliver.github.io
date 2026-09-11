@@ -145,6 +145,25 @@
   .export-btn { width: 100%; margin-top: 28px; padding: 15px; background: var(--bg2); border: none; border-radius: 14px; font-size: 15px; font-weight: 500; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 9px; }
   .export-btn:active { background: var(--bg3); }
   .export-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* category hint chevron + log edit hint */
+  .cat-hint { cursor: pointer; }
+  .hint-chev { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.6; }
+  .entry-row { cursor: pointer; }
+  .entry-edit-hint { color: var(--text3); opacity: 0.7; }
+
+  /* BOTTOM SHEET PICKER */
+  .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: flex-end; z-index: 100; opacity: 0; transition: opacity 0.22s ease; }
+  .sheet-backdrop.show { opacity: 1; }
+  .sheet { width: 100%; background: var(--bg); border-radius: 22px 22px 0 0; padding-bottom: calc(var(--safe-bottom) + 10px); max-height: 82%; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s cubic-bezier(.32,.72,0,1); }
+  .sheet-backdrop.show .sheet { transform: translateY(0); }
+  .sheet-handle { width: 38px; height: 4px; background: var(--hair2); border-radius: 99px; margin: 10px auto 4px; }
+  .sheet-title { text-align: center; font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; padding: 6px 0 8px; }
+  .sheet-item { display: flex; align-items: center; gap: 14px; padding: 13px 22px; cursor: pointer; }
+  .sheet-item:active { background: var(--bg2); }
+  .sheet-item-label { flex: 1; font-size: 16px; color: var(--text); }
+  .sheet-item.selected .sheet-item-label { font-weight: 500; color: var(--accent); }
+  .sheet-check { width: 20px; height: 20px; stroke: var(--accent); fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 </style>
 </head>
 <body>
@@ -261,6 +280,15 @@
   </div>
 </div>
 
+<!-- CATEGORY PICKER -->
+<div class="sheet-backdrop" id="sheet-backdrop" hidden>
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">choose category</div>
+    <div class="sheet-list" id="sheet-list"></div>
+  </div>
+</div>
+
 <script>
 const ICONS = {
   drinks: '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h15v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="5"/><line x1="10" y1="2" x2="10" y2="5"/><line x1="14" y1="2" x2="14" y2="5"/>',
@@ -338,7 +366,7 @@ function recategorizeAll() {
   try {
     if (localStorage.getItem('spend_recat') === RECAT_VERSION) return;
     const data = loadData();
-    data.forEach(e => { e.catId = categorize(e.desc).id; });
+    data.forEach(e => { if (!e.manual) e.catId = categorize(e.desc).id; });
     saveData(data);
     localStorage.setItem('spend_recat', RECAT_VERSION);
   } catch(e) {}
@@ -371,16 +399,18 @@ function handleKey(k) {
   renderAmount();
 }
 
+let manualCatId = null;
 function doSave() {
   const amt = amountCents/100;
   if (amt <= 0) { shakeSave(); return; }
   const desc = document.getElementById('desc-input').value.trim();
   if (!desc) { document.getElementById('desc-input').focus(); return; }
-  const cat = categorize(desc);
+  const catId = manualCatId || categorize(desc).id;
   const data = loadData();
-  data.push({ id: Date.now(), date: todayStr(), ts: Date.now(), amount: amt, desc, catId: cat.id });
+  data.push({ id: Date.now(), date: todayStr(), ts: Date.now(), amount: amt, desc, catId, manual: !!manualCatId });
   saveData(data);
   amountCents = 0;
+  manualCatId = null;
   document.getElementById('desc-input').value = '';
   renderAmount();
   updateCatHint('');
@@ -400,18 +430,25 @@ function flashSave() {
   setTimeout(() => { btn.textContent = 'save'; }, 850);
 }
 
+const CHEV_DOWN = '<svg class="hint-chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>';
 function updateCatHint(desc) {
   const el = document.getElementById('cat-hint');
-  if (!desc.trim()) {
-    el.textContent = 'category appears as you type';
+  const id = manualCatId || (desc.trim() ? categorize(desc).id : null);
+  if (!id) {
+    el.innerHTML = 'tap to pick category' + CHEV_DOWN;
     el.className = 'cat-hint';
     return;
   }
-  const cat = categorize(desc);
-  el.innerHTML = svg(cat.icon) + '<span>' + cat.label + '</span>';
+  const cat = catById(id);
+  el.innerHTML = svg(cat.icon) + '<span>' + cat.label + '</span>' + CHEV_DOWN;
   el.className = 'cat-hint detected';
 }
 
+document.getElementById('cat-hint').addEventListener('click', () => {
+  const desc = document.getElementById('desc-input').value;
+  const cur = manualCatId || (desc.trim() ? categorize(desc).id : 'other');
+  openPicker(cur, id => { manualCatId = id; updateCatHint(desc); });
+});
 document.getElementById('desc-input').addEventListener('input', e => updateCatHint(e.target.value));
 document.getElementById('desc-input').addEventListener('keydown', e => { if (e.key === 'Enter') doSave(); });
 document.querySelectorAll('.key').forEach(k => k.addEventListener('click', () => handleKey(k.dataset.key)));
@@ -442,11 +479,11 @@ function showLog() {
   if (data.length === 0) { list.innerHTML = '<div class="empty-state">nothing logged this day</div>'; return; }
   list.innerHTML = [...data].sort((a,b) => b.ts - a.ts).map(e => {
     const cat = catById(e.catId);
-    return `<div class="entry-row">
+    return `<div class="entry-row" onclick="changeEntryCat(${e.id})">
       <div class="entry-icon">${svg(cat.icon)}</div>
-      <div class="entry-info"><div class="entry-desc">${esc(e.desc)}</div><div class="entry-cat">${cat.label}</div></div>
+      <div class="entry-info"><div class="entry-desc">${esc(e.desc)}</div><div class="entry-cat">${cat.label} <span class="entry-edit-hint">· tap to change</span></div></div>
       <div class="entry-amt">${fmtAmt(e.amount)}</div>
-      <button class="entry-del" onclick="deleteEntry(${e.id})" aria-label="delete"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <button class="entry-del" onclick="event.stopPropagation(); deleteEntry(${e.id})" aria-label="delete"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>`;
   }).join('');
 }
@@ -454,6 +491,16 @@ function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 function deleteEntry(id) {
   saveData(loadData().filter(e => e.id !== id));
   showLog();
+}
+function changeEntryCat(id) {
+  const data = loadData();
+  const e = data.find(x => x.id === id);
+  if (!e) return;
+  openPicker(e.catId, newId => {
+    e.catId = newId; e.manual = true;
+    saveData(data);
+    showLog();
+  });
 }
 document.getElementById('day-prev').addEventListener('click', () => { logOffset--; showLog(); });
 document.getElementById('day-next').addEventListener('click', () => { if (logOffset < 0) { logOffset++; showLog(); } });
@@ -563,6 +610,33 @@ function exportCSV() {
   a.href = url; a.download = `spend_${todayStr()}.csv`; a.click();
   URL.revokeObjectURL(url);
 }
+
+// CATEGORY PICKER (bottom sheet)
+let pickerCallback = null;
+function openPicker(currentId, cb) {
+  pickerCallback = cb;
+  document.getElementById('sheet-list').innerHTML = CATS.map(c => `
+    <div class="sheet-item${c.id === currentId ? ' selected' : ''}" onclick="pickCat('${c.id}')">
+      <div class="cat-ico">${svg(c.icon)}</div>
+      <div class="sheet-item-label">${c.label}</div>
+      ${c.id === currentId ? '<svg class="sheet-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+    </div>`).join('');
+  const bd = document.getElementById('sheet-backdrop');
+  bd.hidden = false;
+  requestAnimationFrame(() => bd.classList.add('show'));
+}
+function closePicker() {
+  const bd = document.getElementById('sheet-backdrop');
+  bd.classList.remove('show');
+  setTimeout(() => { bd.hidden = true; }, 280);
+  pickerCallback = null;
+}
+function pickCat(id) {
+  const cb = pickerCallback;
+  closePicker();
+  if (cb) cb(id);
+}
+document.getElementById('sheet-backdrop').addEventListener('click', e => { if (e.target.id === 'sheet-backdrop') closePicker(); });
 
 // NAV
 function showScreen(name) {
