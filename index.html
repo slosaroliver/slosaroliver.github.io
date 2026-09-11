@@ -251,8 +251,8 @@
     <div class="topbar-title">overview</div>
   </div>
   <div class="period-tabs">
-    <button class="period-tab active" data-period="week" onclick="setPeriod('week')">week</button>
-    <button class="period-tab" data-period="month" onclick="setPeriod('month')">month</button>
+    <button class="period-tab" data-period="week" onclick="setPeriod('week')">week</button>
+    <button class="period-tab active" data-period="salary" onclick="setPeriod('salary')">salary</button>
     <button class="period-tab" data-period="year" onclick="setPeriod('year')">year</button>
     <button class="period-tab" data-period="all" onclick="setPeriod('all')">all</button>
   </div>
@@ -380,6 +380,7 @@ function fmtAmt(n) { return '€' + n.toFixed(2).replace('.', ','); }
 const DAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 const MON = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 const MONTHS = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+const PAYDAY = 12; // salary arrives on the 12th; the "salary" period runs 12th → 11th
 
 let amountCents = 0;
 let currentScreen = 'entry';
@@ -507,7 +508,7 @@ document.getElementById('day-next').addEventListener('click', () => { if (logOff
 document.getElementById('log-today-btn').addEventListener('click', () => { logOffset = 0; showLog(); });
 
 // OVERVIEW
-let overviewPeriod = 'week';
+let overviewPeriod = 'salary';
 let periodOffset = 0;
 function setPeriod(p) {
   overviewPeriod = p;
@@ -525,6 +526,13 @@ function getPeriodRange() {
     const sun = new Date(mon); sun.setDate(mon.getDate()+6);
     start = dateStr(mon); end = dateStr(sun);
     label = periodOffset === 0 ? 'this week' : `${mon.getDate()} ${MON[mon.getMonth()]} – ${sun.getDate()} ${MON[sun.getMonth()]}`;
+  } else if (overviewPeriod === 'salary') {
+    let bm = now.getMonth();
+    if (now.getDate() < PAYDAY) bm--;
+    const s = new Date(now.getFullYear(), bm + periodOffset, PAYDAY);
+    const e = new Date(s.getFullYear(), s.getMonth() + 1, PAYDAY - 1);
+    start = dateStr(s); end = dateStr(e);
+    label = `${PAYDAY} ${MON[s.getMonth()]} – ${PAYDAY-1} ${MON[e.getMonth()]} ${e.getFullYear()}`;
   } else if (overviewPeriod === 'month') {
     const base = new Date(now.getFullYear(), now.getMonth() + periodOffset, 1);
     start = dateStr(base);
