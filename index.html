@@ -139,6 +139,10 @@
   .cat-entries.open { max-height: 2000px; }
   .cat-entry { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0 9px 47px; border-top: 0.5px solid var(--hair); cursor: pointer; }
   .cat-entry:active { background: var(--bg2); }
+  .cat-row.empty .cat-name, .cat-row.empty .cat-amt { color: var(--text3); }
+  .cat-row.empty .cat-row-header { cursor: default; }
+  .toggle-cats { display: block; margin: 14px auto 2px; background: none; border: none; color: var(--accent); font-size: 13px; font-weight: 500; cursor: pointer; padding: 8px 12px; }
+  .toggle-cats:active { opacity: 0.6; }
   .cat-entry-left { flex: 1; min-width: 0; }
   .cat-entry-desc { font-size: 14px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cat-entry-date { font-size: 11px; color: var(--text3); margin-top: 2px; }
@@ -512,6 +516,8 @@ document.getElementById('log-today-btn').addEventListener('click', () => { logOf
 // OVERVIEW
 let overviewPeriod = 'salary';
 let periodOffset = 0;
+let showAllCats = false;
+function toggleShowAll() { showAllCats = !showAllCats; renderOverview(); }
 function setPeriod(p) {
   overviewPeriod = p;
   periodOffset = 0;
@@ -563,21 +569,27 @@ function renderOverview() {
   all.forEach(e => (byCat[e.catId] || byCat['other']).push(e));
   const mk = cats => cats.map(c => ({ cat: c, entries: byCat[c.id], total: byCat[c.id].reduce((s,e)=>s+e.amount,0) }))
     .filter(x => x.total > 0).sort((a,b) => b.total - a.total);
-  const mainCats = mk(CATS.filter(c => !c.separate));
+  let mainCats = mk(CATS.filter(c => !c.separate));
+  if (showAllCats) {
+    const shown = new Set(mainCats.map(x => x.cat.id));
+    const zeros = CATS.filter(c => !c.separate && !shown.has(c.id)).map(c => ({ cat: c, entries: [], total: 0 }));
+    mainCats = mainCats.concat(zeros);
+  }
   const sepCats = mk(CATS.filter(c => c.separate));
-  const maxCat = mainCats.length ? mainCats[0].total : 0;
+  const maxCat = mainCats.length ? Math.max(...mainCats.map(x => x.total)) : 0;
 
   const rowHtml = (x, showBar) => {
+    const hasEntries = x.entries.length > 0;
     const pct = maxCat > 0 ? (x.total/maxCat*100) : 0;
     const entries = [...x.entries].sort((a,b) => b.ts - a.ts).map(e => {
       const [y,m,d] = e.date.split('-').map(Number);
       return `<div class="cat-entry" onclick="event.stopPropagation(); changeEntryCat(${e.id})"><div class="cat-entry-left"><div class="cat-entry-desc">${esc(e.desc)}</div><div class="cat-entry-date">${d} ${MON[m-1]} ${y}</div></div><div class="cat-entry-amt">${fmtAmt(e.amount)}</div></div>`;
     }).join('');
-    return `<div class="cat-row">
-      <div class="cat-row-header" onclick="toggleCat('${x.cat.id}')">
+    return `<div class="cat-row${hasEntries ? '' : ' empty'}">
+      <div class="cat-row-header"${hasEntries ? ` onclick="toggleCat('${x.cat.id}')"` : ''}>
         <div class="cat-ico">${svg(x.cat.icon)}</div>
         <div class="cat-mid"><div class="cat-name">${x.cat.label}</div>${showBar ? `<div class="bar-track"><div class="bar-fill" style="width:${pct.toFixed(1)}%"></div></div>` : ''}</div>
-        <div class="cat-right"><div class="cat-amt">${fmtAmt(x.total)}</div><div class="cat-chevron" id="chev-${x.cat.id}"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></div></div>
+        <div class="cat-right"><div class="cat-amt">${fmtAmt(x.total)}</div>${hasEntries ? `<div class="cat-chevron" id="chev-${x.cat.id}"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></div>` : ''}</div>
       </div>
       <div class="cat-entries" id="catentries-${x.cat.id}">${entries}</div>
     </div>`;
@@ -595,6 +607,7 @@ function renderOverview() {
     </div>
     ${mainCats.length === 0 ? '<div class="empty-state" style="padding:40px 0">no entries for this period</div>' :
       `<div class="section-head">by category</div>` + mainCats.map(x => rowHtml(x, true)).join('')}
+    <button class="toggle-cats" onclick="toggleShowAll()">${showAllCats ? 'hide empty categories' : 'show all categories'}</button>
     ${sepCats.length ? `<div class="section-head" style="margin-top:26px">separate · not in total</div>` + sepCats.map(x => rowHtml(x, false)).join('') : ''}
     <button class="export-btn" onclick="exportCSV()">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
