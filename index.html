@@ -137,7 +137,8 @@
   .cat-chevron.open { transform: rotate(90deg); }
   .cat-entries { overflow: hidden; transition: max-height 0.3s ease; max-height: 0; }
   .cat-entries.open { max-height: 2000px; }
-  .cat-entry { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0 9px 47px; border-top: 0.5px solid var(--hair); }
+  .cat-entry { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0 9px 47px; border-top: 0.5px solid var(--hair); cursor: pointer; }
+  .cat-entry:active { background: var(--bg2); }
   .cat-entry-left { flex: 1; min-width: 0; }
   .cat-entry-desc { font-size: 14px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cat-entry-date { font-size: 11px; color: var(--text3); margin-top: 2px; }
@@ -501,7 +502,7 @@ function changeEntryCat(id) {
   openPicker(e.catId, newId => {
     e.catId = newId; e.manual = true;
     saveData(data);
-    showLog();
+    if (currentScreen === 'overview') renderOverview(); else showLog();
   });
 }
 document.getElementById('day-prev').addEventListener('click', () => { logOffset--; showLog(); });
@@ -570,7 +571,7 @@ function renderOverview() {
     const pct = maxCat > 0 ? (x.total/maxCat*100) : 0;
     const entries = [...x.entries].sort((a,b) => b.ts - a.ts).map(e => {
       const [y,m,d] = e.date.split('-').map(Number);
-      return `<div class="cat-entry"><div class="cat-entry-left"><div class="cat-entry-desc">${esc(e.desc)}</div><div class="cat-entry-date">${d} ${MON[m-1]} ${y}</div></div><div class="cat-entry-amt">${fmtAmt(e.amount)}</div></div>`;
+      return `<div class="cat-entry" onclick="event.stopPropagation(); changeEntryCat(${e.id})"><div class="cat-entry-left"><div class="cat-entry-desc">${esc(e.desc)}</div><div class="cat-entry-date">${d} ${MON[m-1]} ${y}</div></div><div class="cat-entry-amt">${fmtAmt(e.amount)}</div></div>`;
     }).join('');
     return `<div class="cat-row">
       <div class="cat-row-header" onclick="toggleCat('${x.cat.id}')">
