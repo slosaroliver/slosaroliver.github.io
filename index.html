@@ -147,7 +147,9 @@
   .cat-entry-desc { font-size: 14px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cat-entry-date { font-size: 11px; color: var(--text3); margin-top: 2px; }
   .cat-entry-amt { font-size: 14px; font-weight: 500; color: var(--text2); flex-shrink: 0; margin-left: 10px; }
-  .export-btn { width: 100%; margin-top: 28px; padding: 15px; background: var(--bg2); border: none; border-radius: 14px; font-size: 15px; font-weight: 500; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 9px; }
+  .export-btn { width: 100%; margin-top: 10px; padding: 15px; background: var(--bg2); border: none; border-radius: 14px; font-size: 15px; font-weight: 500; color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 9px; }
+  .export-btn:first-of-type { margin-top: 28px; }
+  .export-btn.secondary { background: none; color: var(--text2); font-weight: 400; font-size: 14px; margin-top: 4px; }
   .export-btn:active { background: var(--bg3); }
   .export-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -609,9 +611,13 @@ function renderOverview() {
       `<div class="section-head">by category</div>` + mainCats.map(x => rowHtml(x, true)).join('')}
     <button class="toggle-cats" onclick="toggleShowAll()">${showAllCats ? 'hide empty categories' : 'show all categories'}</button>
     ${sepCats.length ? `<div class="section-head" style="margin-top:26px">separate · not in total</div>` + sepCats.map(x => rowHtml(x, false)).join('') : ''}
-    <button class="export-btn" onclick="exportCSV()">
+    <button class="export-btn" onclick="exportCSV(true)">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      export as CSV
+      export this period
+    </button>
+    <button class="export-btn secondary" onclick="exportCSV(false)">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      full backup (everything)
     </button>`;
 }
 function toggleCat(id) {
@@ -622,15 +628,21 @@ document.getElementById('period-prev').addEventListener('click', () => { periodO
 document.getElementById('period-next').addEventListener('click', () => { if (periodOffset < 0) { periodOffset++; renderOverview(); } });
 
 // EXPORT
-function exportCSV() {
-  const data = loadData().sort((a,b) => a.ts - b.ts);
-  if (data.length === 0) { alert('no entries to export'); return; }
+function exportCSV(periodOnly) {
+  let data = loadData().sort((a,b) => a.ts - b.ts);
+  let fname = `spend_all_${todayStr()}.csv`;
+  if (periodOnly) {
+    const { start, end } = getPeriodRange();
+    data = data.filter(e => e.date >= start && e.date <= end);
+    fname = `spend_${start}_to_${end}.csv`;
+  }
+  if (data.length === 0) { alert('nothing to export for this selection'); return; }
   const rows = [['date','description','category','amount']];
   data.forEach(e => rows.push([e.date, `"${e.desc.replace(/"/g,'""')}"`, catById(e.catId).label, e.amount.toFixed(2)]));
   const blob = new Blob([rows.map(r => r.join(',')).join('\n')], {type:'text/csv'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `spend_${todayStr()}.csv`; a.click();
+  a.href = url; a.download = fname; a.click();
   URL.revokeObjectURL(url);
 }
 

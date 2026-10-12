@@ -1,0 +1,8 @@
+# Personal financial data — NEVER publish to the public GitHub Pages repo.
+# Exports stay local for analysis; only index.html is deployed.
+exports/
+*.csv
+
+# Local tooling / editor config
+.claude/
+.DS_Store
