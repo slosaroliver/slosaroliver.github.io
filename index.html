@@ -388,7 +388,7 @@ function fmtAmt(n) { return '€' + n.toFixed(2).replace('.', ','); }
 const DAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 const MON = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 const MONTHS = ['january','february','march','april','may','june','july','august','september','october','november','december'];
-const PAYDAY = 12; // salary arrives on the 12th; the "salary" period runs 12th → 11th
+const ANCHOR = 10; // salary floats 10th–12th; cycle cutoff at the 10th (runs 10th → 9th) so each payday batch (salary+rent+savings) groups into one month
 
 let amountCents = 0;
 let currentScreen = 'entry';
@@ -538,11 +538,11 @@ function getPeriodRange() {
     label = periodOffset === 0 ? 'this week' : `${mon.getDate()} ${MON[mon.getMonth()]} – ${sun.getDate()} ${MON[sun.getMonth()]}`;
   } else if (overviewPeriod === 'salary') {
     let bm = now.getMonth();
-    if (now.getDate() < PAYDAY) bm--;
-    const s = new Date(now.getFullYear(), bm + periodOffset, PAYDAY);
-    const e = new Date(s.getFullYear(), s.getMonth() + 1, PAYDAY - 1);
+    if (now.getDate() < ANCHOR) bm--;
+    const s = new Date(now.getFullYear(), bm + periodOffset, ANCHOR);
+    const e = new Date(s.getFullYear(), s.getMonth() + 1, ANCHOR - 1);
     start = dateStr(s); end = dateStr(e);
-    label = `${PAYDAY} ${MON[s.getMonth()]} – ${PAYDAY-1} ${MON[e.getMonth()]} ${e.getFullYear()}`;
+    label = `${MON[s.getMonth()]} – ${MON[e.getMonth()]} ${e.getFullYear()}`;
   } else if (overviewPeriod === 'month') {
     const base = new Date(now.getFullYear(), now.getMonth() + periodOffset, 1);
     start = dateStr(base);
