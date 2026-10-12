@@ -2,6 +2,7 @@
 # Exports stay local for analysis; only index.html is deployed.
 exports/
 *.csv
+*.xlsx
 
 # Local tooling / editor config
 .claude/
