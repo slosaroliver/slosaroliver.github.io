@@ -384,6 +384,28 @@ function recategorizeAll() {
 }
 recategorizeAll();
 
+// One-time corrections to specific past entries (matched by date + description + amount), applied once per device.
+const DATA_FIXES_VERSION = '2026-11-12-a';
+const DATA_FIXES = [
+  { date: '2026-10-20', desc: 'bali trip',    amount: 623,   set: { catId: 'from-savings', manual: true } },
+  { date: '2026-09-21', desc: 'nhd',          amount: 1.09,  set: { desc: 'mhd', catId: 'transport' } },
+  { date: '2026-09-03', desc: 'apple icloud', amount: 11.99, set: { desc: 'macrofactor', catId: 'subscriptions' } },
+  { date: '2026-11-03', desc: 'apple icloud', amount: 11.99, set: { desc: 'macrofactor', catId: 'subscriptions' } },
+];
+function applyDataFixes() {
+  try {
+    if (localStorage.getItem('spend_fixes') === DATA_FIXES_VERSION) return;
+    const data = loadData();
+    for (const f of DATA_FIXES) {
+      const e = data.find(x => x.date === f.date && x.desc.trim().toLowerCase() === f.desc && Math.abs(x.amount - f.amount) < 0.005);
+      if (e) Object.assign(e, f.set);
+    }
+    saveData(data);
+    localStorage.setItem('spend_fixes', DATA_FIXES_VERSION);
+  } catch(e) {}
+}
+applyDataFixes();
+
 function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function todayStr() { return dateStr(new Date()); }
 function fmtAmt(n) { return '€' + n.toFixed(2).replace('.', ','); }
