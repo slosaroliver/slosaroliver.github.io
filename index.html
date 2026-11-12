@@ -314,6 +314,7 @@ const ICONS = {
   travel: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="12" y1="7" x2="12" y2="20"/>',
   savings: '<polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/>',
   fond: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.75"/>',
+  fromSavings: '<rect x="3" y="10" width="18" height="11" rx="2"/><path d="M12 3v10"/><polyline points="8 7 12 3 16 7"/>',
   other: '<path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.3 7 12 12 20.7 7"/><line x1="12" y1="22" x2="12" y2="12"/>'
 };
 function svg(inner) { return `<svg viewBox="0 0 24 24">${inner}</svg>`; }
@@ -349,6 +350,8 @@ const CATS = [
     keys: ['savings','sporenie','finax','dds','investicia','investment','etf','akcie','stocks','crypto','dochodok','sporiaci'] },
   { id: 'spolocny-fond', label: 'spoločný fond', icon: ICONS.fond, separate: true,
     keys: ['joint account','joint','spolocny fond','spolocny','shared fund'] },
+  // Paid out of the savings account — not new spending from salary, so kept out of totals. Picked manually (no keywords).
+  { id: 'from-savings', label: 'paid from savings', icon: ICONS.fromSavings, separate: true, keys: [] },
   { id: 'other',       label: 'other',        icon: ICONS.other, keys: [] }
 ];
 
