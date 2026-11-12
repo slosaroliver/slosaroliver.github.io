@@ -388,7 +388,12 @@ function fmtAmt(n) { return '€' + n.toFixed(2).replace('.', ','); }
 const DAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 const MON = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 const MONTHS = ['january','february','march','april','may','june','july','august','september','october','november','december'];
-const ANCHOR = 10; // salary floats 10th–12th; cycle cutoff at the 10th (runs 10th → 9th) so each payday batch (salary+rent+savings) groups into one month
+const PAYDAY = 12; // regular payday; a salary cycle runs payday → day before next payday
+const PAYDAY_OVERRIDES = { '2026-09': 11 }; // months paid on a different day — keep in sync with exports/build_master.py
+function paydayOf(y, m) { // m is 0-based
+  const key = `${y}-${String(m + 1).padStart(2, '0')}`;
+  return new Date(y, m, PAYDAY_OVERRIDES[key] || PAYDAY);
+}
 
 let amountCents = 0;
 let currentScreen = 'entry';
@@ -537,10 +542,13 @@ function getPeriodRange() {
     start = dateStr(mon); end = dateStr(sun);
     label = periodOffset === 0 ? 'this week' : `${mon.getDate()} ${MON[mon.getMonth()]} – ${sun.getDate()} ${MON[sun.getMonth()]}`;
   } else if (overviewPeriod === 'salary') {
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     let bm = now.getMonth();
-    if (now.getDate() < ANCHOR) bm--;
-    const s = new Date(now.getFullYear(), bm + periodOffset, ANCHOR);
-    const e = new Date(s.getFullYear(), s.getMonth() + 1, ANCHOR - 1);
+    if (today < paydayOf(now.getFullYear(), bm)) bm--;
+    const sm = new Date(now.getFullYear(), bm + periodOffset, 1);
+    const s = paydayOf(sm.getFullYear(), sm.getMonth());
+    const nx = new Date(sm.getFullYear(), sm.getMonth() + 1, 1);
+    const e = paydayOf(nx.getFullYear(), nx.getMonth()); e.setDate(e.getDate() - 1);
     start = dateStr(s); end = dateStr(e);
     label = `${MON[s.getMonth()]} – ${MON[e.getMonth()]} ${e.getFullYear()}`;
   } else if (overviewPeriod === 'month') {
