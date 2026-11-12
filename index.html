@@ -299,10 +299,8 @@
 
 <script>
 const ICONS = {
-  drinks: '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h15v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="5"/><line x1="10" y1="2" x2="10" y2="5"/><line x1="14" y1="2" x2="14" y2="5"/>',
   eatingOut: '<path d="M6 2v7a2 2 0 0 0 4 0V2"/><line x1="8" y1="9" x2="8" y2="22"/><path d="M17 2c-1.7 0-3 2-3 5s1.3 4 3 4"/><line x1="17" y1="2" x2="17" y2="22"/>',
   groceries: '<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.2 11a1.6 1.6 0 0 0 1.6 1.3h8.4a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/>',
-  snacks: '<path d="M12 21 7 10h10z"/><path d="M7 10a5 5 0 0 1 10 0"/>',
   nicotine: '<path d="M11 20A7 7 0 0 1 4 13c0-6 7-9 16-9 0 9-3 16-9 16z"/><line x1="7" y1="17" x2="14" y2="10"/>',
   shopping: '<path d="M6 2 3.5 6v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V6L18 2z"/><line x1="3.5" y1="6" x2="20.5" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>',
   transport: '<rect x="4" y="3" width="16" height="13" rx="2.5"/><line x1="4" y1="11" x2="20" y2="11"/><line x1="8" y1="3" x2="8" y2="11"/><line x1="16" y1="3" x2="16" y2="11"/><circle cx="8" cy="19" r="1.4"/><circle cx="16" cy="19" r="1.4"/>',
@@ -321,13 +319,14 @@ function svg(inner) { return `<svg viewBox="0 0 24 24">${inner}</svg>`; }
 
 const CATS = [
   { id: 'groceries',   label: 'groceries',    icon: ICONS.groceries,
-    keys: ['grocery','groceries','supermarket','lidl','aldi','tesco','kaufland','billa','spar','rewe','coop','jednota','potraviny','market','produce','food shop','food shopping','veggies','vegetables','fruit','meat','bread','milk','cheese','eggs','butter','ciabatta','pecivo','rohlik'] },
-  { id: 'eating-out',  label: 'eating out',   icon: ICONS.eatingOut,
-    keys: ['lunch','dinner','brunch','breakfast','restaurant','takeaway','take away','takeout','burger','pizza','sushi','ramen','pasta','kebab','gyros','mcdonald','kfc','subway','chipotle','nandos','wagamama','bistro','diner','ate out','eating out','food out','thai','indian','chinese','mexican','italian','obed','vecera','ranajky','jedlo','jedlo vonku','obed vonku','bufet','bold food'] },
-  { id: 'drinks',      label: 'drinks',       icon: ICONS.drinks,
-    keys: ['coffee','cafe','latte','cappuccino','espresso','flat white','macchiato','tea','beer','beers','bar','pub','wine','cocktail','prosecco','shots','shot','gin','vodka','whiskey','rum','pint','pints','drinks','drink','juice','smoothie','kombucha','mineralka','monster','hell','hellko','pivo','piva','radler','kofola','birell','malinovka','kapucino','vinko','aperol','spritz','mojito'] },
-  { id: 'snacks',      label: 'snacks & treats', icon: ICONS.snacks,
-    keys: ['snack','snacks','nanuk','zmrzlina','zmrzka','cukriky','cukrik','sladkosti','keksy','cokolada','chips','chipsy','candy','sweets','ice cream','popsicle','dezert','kolac','muffin','donut','oplatka'] },
+    keys: ['grocery','groceries','supermarket','lidl','aldi','tesco','kaufland','billa','spar','rewe','coop','jednota','potraviny','market','produce','food shop','food shopping','veggies','vegetables','fruit','meat','bread','milk','cheese','eggs','butter','ciabatta','pecivo','rohlik',
+      // drinks & snacks bought at the shop (merged in 2026-11)
+      'mineralka','monster','hell','hellko','kofola','birell','malinovka','juice','smoothie','kombucha','radler',
+      'snack','snacks','nanuk','zmrzlina','zmrzka','cukriky','cukrik','sladkosti','keksy','cokolada','chips','chipsy','candy','sweets','ice cream','popsicle','dezert','kolac','muffin','donut','oplatka'] },
+  { id: 'eating-out',  label: 'eating & drinking out', icon: ICONS.eatingOut,
+    keys: ['lunch','dinner','brunch','breakfast','restaurant','takeaway','take away','takeout','burger','pizza','sushi','ramen','pasta','kebab','gyros','mcdonald','kfc','subway','chipotle','nandos','wagamama','bistro','diner','ate out','eating out','food out','thai','indian','chinese','mexican','italian','obed','vecera','ranajky','jedlo','jedlo vonku','obed vonku','bufet','bold food',
+      // drinks out (merged in 2026-11)
+      'coffee','cafe','latte','cappuccino','espresso','flat white','macchiato','kapucino','tea','beer','beers','bar','pub','wine','vinko','cocktail','prosecco','aperol','spritz','mojito','shots','shot','gin','vodka','whiskey','rum','pint','pints','pivo','piva','drinks','drink'] },
   { id: 'nicotine',    label: 'nicotine',     icon: ICONS.nicotine,
     keys: ['zuvak','zuwak','snus','velo','zyn','nikotin','nicotine','vrecka','pouches','pouch'] },
   { id: 'transport',   label: 'transport',    icon: ICONS.transport,
@@ -372,12 +371,13 @@ function loadData() { try { return JSON.parse(localStorage.getItem('spend_data')
 function saveData(d) { try { localStorage.setItem('spend_data', JSON.stringify(d)); } catch(e) {} }
 
 // One-time re-categorization when the ruleset changes. Bump RECAT_VERSION to re-run.
-const RECAT_VERSION = '2026-09-11-b';
+const RECAT_VERSION = '2026-11-12-a';
 function recategorizeAll() {
   try {
     if (localStorage.getItem('spend_recat') === RECAT_VERSION) return;
     const data = loadData();
-    data.forEach(e => { if (!e.manual) e.catId = categorize(e.desc).id; });
+    // Manual choices are kept — unless they point at a category that no longer exists (e.g. removed 'drinks'/'snacks').
+    data.forEach(e => { if (!e.manual || !CATS.some(c => c.id === e.catId)) e.catId = categorize(e.desc).id; });
     saveData(data);
     localStorage.setItem('spend_recat', RECAT_VERSION);
   } catch(e) {}
